@@ -104,3 +104,234 @@
   border: none;
   background-color: white;
 }
+
+/* Prompt Button */
+.promptButton {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.promptButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+  font-size: 24px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+/* Prompt Tabs */
+.promptTabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabButton {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.activeTab {
+  color: #6366f1;
+  border-bottom: 2px solid #6366f1;
+}
+
+/* Prompt Input Area */
+.promptInputArea {
+  margin-bottom: 24px;
+}
+
+.textPromptContainer {
+  width: 100%;
+}
+
+.promptTextarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 150px;
+  font-family: inherit;
+}
+
+.promptTextarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Image Upload */
+.imageUploadContainer {
+  width: 100%;
+}
+
+.imageUploadLabel {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+}
+
+.imageInput {
+  display: none;
+}
+
+.uploadPlaceholder {
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.uploadPlaceholder:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.uploadIcon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.imagePreviewWrapper {
+  width: 100%;
+  height: 250px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Button Actions */
+.promptActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.generateButton {
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.generateButton:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.generateButton:disabled {
+  background: #a5a6f6;
+  cursor: not-allowed;
+}
+
+/* Dark theme adjustments */
+:global(.vs-dark) .modalContent {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+:global(.vs-dark) .modalContent h2 {
+  color: #f3f4f6;
+}
+
+:global(.vs-dark) .promptTextarea {
+  background-color: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+:global(.vs-dark) .uploadPlaceholder {
+  border-color: #444;
+  color: #a0aec0;
+}
+
+:global(.vs-dark) .cancelButton {
+  border-color: #444;
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}

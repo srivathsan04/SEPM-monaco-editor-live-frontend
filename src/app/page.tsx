@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import styles from "./page.module.css";
+import Image from "next/image";
 
 export default function Home() {
   const editorRef = useRef(null);
@@ -17,6 +18,13 @@ export default function Home() {
     width: "50%",
     height: "100%",
   });
+  // New state for prompt interface
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [promptType, setPromptType] = useState("text"); // text or image
+  const [promptText, setPromptText] = useState("");
+  const [promptImage, setPromptImage] = useState(null);
+  const [promptImagePreview, setPromptImagePreview] = useState("");
+  
   const [editorValue, setEditorValue] = useState(
     [
       "<!DOCTYPE html>",
@@ -104,11 +112,41 @@ export default function Home() {
     updatePreview();
   };
 
+  // File input handling
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.substring(0, 5) === "image") {
+      setPromptImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPromptImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle prompt submission (static for now)
+  const handlePromptSubmit = () => {
+    // This will eventually connect to an LLM
+    console.log("Prompt submitted:", promptType === "text" ? promptText : "Image uploaded");
+    // Close the modal after submission
+    setShowPromptModal(false);
+  };
+
   return (
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
         <h1 className={styles.title}>Code Studio Preview</h1>
+        
+        {/* Add AI Prompt button */}
+        <button 
+          className={styles.promptButton}
+          onClick={() => setShowPromptModal(true)}
+        >
+          Generate with AI 🪄
+        </button>
+        
         <div className={styles.controls}>
           <div className={styles.viewButtons}>
             <button
@@ -187,6 +225,92 @@ export default function Home() {
           ></iframe>
         </div>
       </main>
+
+      {/* Prompt Modal */}
+      {showPromptModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <button 
+              className={styles.closeButton} 
+              onClick={() => setShowPromptModal(false)}
+            >
+              ×
+            </button>
+            
+            <h2>Generate Website with AI</h2>
+            
+            <div className={styles.promptTabs}>
+              <button 
+                className={`${styles.tabButton} ${promptType === 'text' ? styles.activeTab : ''}`} 
+                onClick={() => setPromptType('text')}
+              >
+                Text Prompt
+              </button>
+              <button 
+                className={`${styles.tabButton} ${promptType === 'image' ? styles.activeTab : ''}`} 
+                onClick={() => setPromptType('image')}
+              >
+                Upload Image
+              </button>
+            </div>
+            
+            <div className={styles.promptInputArea}>
+              {promptType === 'text' ? (
+                <div className={styles.textPromptContainer}>
+                  <textarea 
+                    className={styles.promptTextarea}
+                    value={promptText}
+                    onChange={(e) => setPromptText(e.target.value)}
+                    placeholder="Describe the website you want to create... For example: 'Create a modern portfolio website with a dark theme, featuring a hero section, about me, skills, and contact form.'"
+                    rows={6}
+                  />
+                </div>
+              ) : (
+                <div className={styles.imageUploadContainer}>
+                  <label className={styles.imageUploadLabel}>
+                    {promptImagePreview ? (
+                      <div className={styles.imagePreviewWrapper}>
+                        <img 
+                          src={promptImagePreview} 
+                          alt="Website reference" 
+                          className={styles.imagePreview} 
+                        />
+                      </div>
+                    ) : (
+                      <div className={styles.uploadPlaceholder}>
+                        <span className={styles.uploadIcon}>📁</span>
+                        <span>Click to upload an image of the website you want to recreate</span>
+                      </div>
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className={styles.imageInput}
+                      onChange={handleImageUpload} 
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+            
+            <div className={styles.promptActions}>
+              <button 
+                className={styles.cancelButton} 
+                onClick={() => setShowPromptModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.generateButton} 
+                onClick={handlePromptSubmit}
+                disabled={promptType === 'text' ? !promptText.trim() : !promptImage}
+              >
+                Generate Website
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
