@@ -9,9 +9,6 @@ import {
   FaCode,
   FaPlay,
   FaMagic,
-  FaUndo,
-  FaRedo,
-  FaCog,
 } from "react-icons/fa";
 
 export default function Home() {
@@ -23,7 +20,7 @@ export default function Home() {
 
   // Editor state
   const [activeLanguage, setActiveLanguage] = useState("html");
-  const [editorTheme, setEditorTheme] = useState("vs-dark");
+  const [editorTheme] = useState("vs-dark");
   const [isAutoRefresh, setIsAutoRefresh] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
   const [viewMode, setViewMode] = useState("split");
@@ -299,7 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!iframeRef.current) return;
 
     const iframe = iframeRef.current;
-    const container = iframe.parentElement;
 
     switch (device) {
       case "mobile":
