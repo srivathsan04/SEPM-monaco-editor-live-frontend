@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { Monaco, OnMount } from "@monaco-editor/react"; // Updated import with types
 import styles from "./page.module.css";
 import {
   FaDesktop,
@@ -10,13 +10,17 @@ import {
   FaPlay,
   FaMagic,
 } from "react-icons/fa";
+// Add types for Monaco editor
+import type * as MonacoEditor from "monaco-editor";
 
 export default function Home() {
-  // Refs
-  const editorRef = useRef(null);
-  const monacoRef = useRef(null);
-  const iframeRef = useRef(null);
-  const resizeDividerRef = useRef(null);
+  // Refs with proper types
+  const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor | null>(
+    null
+  );
+  const monacoRef = useRef<Monaco | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const resizeDividerRef = useRef<HTMLDivElement | null>(null);
 
   // Editor state
   const [activeLanguage, setActiveLanguage] = useState("html");
@@ -150,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const [aiPrompt, setAiPrompt] = useState("");
 
   // Handle editor mounting
-  const handleEditorDidMount = (editor, monaco) => {
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
