@@ -34,7 +34,7 @@ export default function Home() {
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [showConsole, setShowConsole] = useState(false);
 
-  // Code content state - keeping HTML, CSS, JS only
+  // Code content state
   const [htmlCode, setHtmlCode] = useState(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,6 +152,77 @@ document.addEventListener('DOMContentLoaded', () => {
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
 
+  // Add React code state
+  const [reactCode, setReactCode] =
+    useState(`import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+
+function App() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div style={{
+      padding: '20px',
+      margin: '20px 0',
+      borderRadius: '8px',
+      backgroundColor: '#f0f8ff',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h1 style={{color: '#0066cc'}}>React Component</h1>
+      <p>This is a live React component running in the preview!</p>
+      
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        margin: '20px 0'
+      }}>
+        <button 
+          onClick={() => setCount(count - 1)}
+          style={{
+            backgroundColor: '#ff6b6b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer'
+          }}
+        >
+          Decrease
+        </button>
+        
+        <span style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          padding: '0 15px'
+        }}>
+          {count}
+        </span>
+        
+        <button 
+          onClick={() => setCount(count + 1)}
+          style={{
+            backgroundColor: '#4ecdc4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer'
+          }}
+        >
+          Increase
+        </button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));`);
+
+  // Add a new state for React-only view
+  const [showReactOnly, setShowReactOnly] = useState(false);
+
   // Handle editor mounting
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -170,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return cssCode;
       case "js":
         return jsCode;
+      case "react":
+        return reactCode;
       default:
         return htmlCode;
     }
@@ -187,6 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
       case "js":
         setJsCode(value);
         break;
+      case "react":
+        setReactCode(value);
+        break;
     }
 
     if (isAutoRefresh) {
@@ -203,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear console on each refresh
     setConsoleLogs([]);
 
-    // Combine HTML, CSS, and JS into a full document
+    // Combine HTML, CSS, JS, and React into a full document
     const combinedCode = `
       <!DOCTYPE html>
       <html lang="en">
@@ -212,6 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
         <style>${cssCode}</style>
+        <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script>
           // Console log capture
           const originalConsole = console;
@@ -242,21 +321,102 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           };
         </script>
+        <style>
+          /* Added styles to help with React component display */
+          #root {
+            padding: 15px;
+            margin-top: 30px;
+            border-top: 3px solid #3498db;
+            position: relative;
+          }
+          
+          #root::before {
+            content: "React Component";
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #3498db;
+            color: white;
+            padding: 2px 10px;
+            font-size: 14px;
+            border-radius: 4px 4px 0 0;
+          }
+          
+          /* Add clear separation between HTML and React content */
+          .html-content-end {
+            margin-bottom: 40px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 20px;
+          }
+        </style>
       </head>
       <body>
-        ${htmlCode.replace(
-          /<(!DOCTYPE|html|head|body).*?>|<\/(html|head|body)>/gi,
-          ""
-        )}
+        <div class="html-content">
+          ${htmlCode.replace(
+            /<(!DOCTYPE|html|head|body).*?>|<\/(html|head|body)>/gi,
+            ""
+          )}
+        </div>
+        <div class="html-content-end"></div>
+        
+        <!-- React root container -->
+        <div id="root"></div>
         
         <!-- JavaScript code -->
         <script type="text/javascript">${jsCode}</script>
+        
+        <!-- React code with error handling -->
+        <script type="text/babel">
+          try {
+            ${reactCode}
+            console.log("✅ React component rendered successfully");
+          } catch (error) {
+            console.error("❌ React error:", error.message);
+            document.getElementById('root').innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red; background: #ffeeee;">React Error: ' + error.message + '</div>';
+          }
+        </script>
       </body>
       </html>
     `;
 
     iframeRef.current.srcdoc = combinedCode;
-  }, [htmlCode, cssCode, jsCode]);
+  }, [htmlCode, cssCode, jsCode, reactCode]);
+
+  // Add this function to generate React-only preview
+  const showReactPreview = useCallback(() => {
+    if (!iframeRef.current) return;
+
+    const reactOnlyCode = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>React Preview</title>
+        <style>${cssCode}</style>
+        <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script>
+          // Console log capture code here
+        </script>
+      </head>
+      <body>
+        <div id="root" style="padding: 20px;"></div>
+        <script type="text/babel">
+          try {
+            ${reactCode}
+            console.log("✅ React-only view rendered");
+          } catch (error) {
+            console.error("❌ React error:", error.message);
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    iframeRef.current.srcdoc = reactOnlyCode;
+  }, [reactCode, cssCode]);
 
   // Initialize console message listener
   useEffect(() => {
@@ -336,7 +496,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Simulate AI response for demo purposes
     setTimeout(() => {
-      if (activeLanguage === "html") {
+      if (activeLanguage === "react") {
+        setReactCode(
+          `// AI generated React code based on: ${aiPrompt}\n` + reactCode
+        );
+      } else if (activeLanguage === "html") {
         setHtmlCode(
           `<!-- AI generated HTML based on: ${aiPrompt} -->\n` + htmlCode
         );
@@ -351,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   };
 
+  // Drag handler for resizing panels
   useEffect(() => {
     const handleMouseDown = () => {
       setIsResizing(true);
@@ -395,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.logoArea}>
-          <h1 className={styles.title}>AI Code Sandbox</h1>
+          <h1 className={styles.title}>Code Studio</h1>
         </div>
 
         <div className={styles.actionButtons}>
@@ -416,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </header>
 
+      {/* Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.languageTabs}>
           <button
@@ -441,6 +607,14 @@ document.addEventListener('DOMContentLoaded', () => {
             onClick={() => setActiveLanguage("js")}
           >
             JavaScript
+          </button>
+          <button
+            className={`${styles.tabButton} ${
+              activeLanguage === "react" ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveLanguage("react")}
+          >
+            React
           </button>
         </div>
 
@@ -473,6 +647,34 @@ document.addEventListener('DOMContentLoaded', () => {
             >
               <FaPlay />
             </button>
+
+            {/* Add React-only view button when React tab is active */}
+            {activeLanguage === "react" && (
+              <button
+                className={`${styles.viewButton} ${
+                  showReactOnly ? styles.active : ""
+                }`}
+                onClick={() => {
+                  setShowReactOnly(!showReactOnly);
+                  if (!showReactOnly) {
+                    showReactPreview();
+                  } else {
+                    updatePreview();
+                  }
+                }}
+                title="React Only Preview"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                >
+                  <path d="M12 9.861a2.139 2.139 0 100 4.278 2.139 2.139 0 100-4.278zm-5.992 6.394l-.472-.12C2.018 15.246 0 13.737 0 11.996s2.018-3.25 5.536-4.139l.472-.119.133.468a23.53 23.53 0 001.363 3.578l.101.213-.101.213a23.307 23.307 0 00-1.363 3.578l-.133.467zM5.317 8.95c-2.674.751-4.315 1.9-4.315 3.046 0 1.145 1.641 2.294 4.315 3.046.32-1.02.772-2.082 1.35-3.046a23.32 23.32 0 01-1.35-3.046zm12.675 6.484l-.482.12-.133-.468a23.768 23.768 0 00-1.364-3.577l-.101-.213.101-.213a23.77 23.77 0 001.364-3.578l.133-.468.482.12c3.518.889 5.536 2.398 5.536 4.14s-2.018 3.25-5.536 4.139zm-.448-8.083c-.32 1.02-.772 2.082-1.35 3.046a23.542 23.542 0 001.35 3.046c2.675-.752 4.315-1.901 4.315-3.046 0-1.146-1.641-2.294-4.315-3.046z" />
+                  <path d="M12 18c-3.3 0-6.495-.505-8.934-1.43-1.62-.615-2.847-1.399-3.643-2.326A3.019 3.019 0 010 11.996v-8h1v8c0 .725.24 1.271.672 1.837.63.82 1.643 1.504 3.112 2.056 2.157.844 5.03 1.319 8.075 1.319 5.65 0 9.857-1.685 10.978-3.827a2.99 2.99 0 00.163-.556c.049-.22.078-.43.086-.604C24.035 8.15 23.999 4 23.999 4V3h1v1s.123 6.297-.086 7.22c-.061.274-.16.537-.284.774-.274.524-.63.972-1.079 1.362-1.333 1.157-3.943 2.248-7.501 2.744-.325.045-.656.082-.989.112-.263.024-.534.044-.806.058-.271.014-.534.024-.754.03-.221.006-.504.006-.504.006v1.666z" />
+                </svg>
+              </button>
+            )}
           </div>
 
           <div className={styles.deviceControls}>
@@ -538,11 +740,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      {/* Main Content Area */}
       <div className={styles.mainContent}>
         <div className={styles.editorContainer} style={{ width: editorWidth }}>
           <Editor
             height="100%"
-            language={activeLanguage === "js" ? "javascript" : activeLanguage}
+            language={
+              activeLanguage === "react"
+                ? "javascript"
+                : activeLanguage === "js"
+                ? "javascript"
+                : activeLanguage
+            }
             value={getCurrentCode()}
             theme={editorTheme}
             onChange={handleCodeChange}
@@ -589,6 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ></iframe>
           </div>
 
+          {/* Console Panel */}
           {showConsole && (
             <div className={styles.consolePanel}>
               <div className={styles.consolePanelHeader}>
@@ -622,53 +832,25 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      {/* Add the AI Prompt Modal */}
       {showPromptModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
-          <div className="bg-gray-800 w-full max-w-lg rounded-lg overflow-hidden shadow-2xl transform transition-all duration-300 scale-100 animate-fadeIn mx-4">
-            {/* Modal header */}
-            <div className="border-b border-gray-700 px-6 py-4">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <FaMagic className="text-blue-400" /> Generate Code with AI
-              </h2>
-            </div>
-
-            {/* Modal body */}
-            <div className="px-6 py-4">
-              <p className="text-gray-300 mb-3">
-                Describe what you want to create:
-              </p>
-              <textarea
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="E.g., Create a responsive navbar with a logo and dropdown menu..."
-                rows={5}
-                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              />
-
-              {/* Language indicator */}
-              <div className="mt-3 inline-flex items-center gap-2 text-sm bg-gray-700 px-3 py-1.5 rounded-full">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
-                <span className="text-gray-300">
-                  Generating for:{" "}
-                  <span className="text-blue-400 font-medium">
-                    {activeLanguage.toUpperCase()}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            {/* Modal footer */}
-            <div className="bg-gray-900 px-6 py-4 flex justify-end gap-3">
-              <button
-                onClick={() => setShowPromptModal(false)}
-                className="px-4 py-2 rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2>Generate Code with AI</h2>
+            <p>Describe what you want to create:</p>
+            <textarea
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="E.g., Create a responsive navbar with a logo and dropdown menu..."
+              rows={5}
+              className={styles.promptTextarea}
+            />
+            <div className={styles.modalButtons}>
+              <button onClick={() => setShowPromptModal(false)}>Cancel</button>
               <button
                 onClick={generateCodeWithAI}
                 disabled={!aiPrompt.trim()}
-                className="px-4 py-2 rounded-md bg-blue-600 text-white flex items-center gap-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 transition-colors"
+                className={styles.generateButton}
               >
                 <FaMagic /> Generate
               </button>
