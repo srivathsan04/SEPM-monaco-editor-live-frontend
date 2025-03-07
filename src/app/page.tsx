@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div className={styles.consolePanelContent}>
                 {consoleLogs.length === 0 ? (
                   <div className={styles.emptyConsole}>
-                    No console output yet
+                    No console output yet.
                   </div>
                 ) : (
                   consoleLogs.map((log, index) => (
