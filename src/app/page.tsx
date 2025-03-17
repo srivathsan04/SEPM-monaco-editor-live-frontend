@@ -9,6 +9,9 @@ import {
   FaCode,
   FaPlay,
   FaMagic,
+  FaUpload,
+  FaImage,
+  FaTimes,
 } from "react-icons/fa";
 // Add types for Monaco editor
 import type * as MonacoEditor from "monaco-editor";
@@ -152,6 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add missing state for prompt modal
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   // Handle editor mounting
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -201,10 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const updatePreview = useCallback(() => {
     if (!iframeRef.current) return;
 
-    // Clear console on each refresh
     setConsoleLogs([]);
 
-    // Combine HTML, CSS, and JS into a full document
     const combinedCode = `
       <!DOCTYPE html>
       <html lang="en">
@@ -212,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
+        <!-- Include Tailwind CSS via CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>${cssCode}</style>
         <script>
           // Console log capture
@@ -329,25 +334,82 @@ document.addEventListener('DOMContentLoaded', () => {
     alert("Code formatting would happen here with Prettier integration");
   };
 
-  // Add a function to handle AI code generation
+  // Add this function before your return statement
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size exceeds 5MB limit");
+        return;
+      }
+
+      setUploadedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size exceeds 5MB limit");
+        return;
+      }
+
+      setUploadedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearUploadedImage = () => {
+    setUploadedImage(null);
+    setImagePreview("");
+  };
+
+  // Update the generateCodeWithAI function to include image info if available
   const generateCodeWithAI = () => {
     // This would connect to an AI service in a real implementation
     console.log("Generating code with prompt:", aiPrompt);
+    if (uploadedImage) {
+      console.log("Using reference image:", uploadedImage.name);
+      // In a real implementation, you'd upload the image to a service
+      // or encode it as base64 to send with the API request
+    }
 
     // Simulate AI response for demo purposes
     setTimeout(() => {
       if (activeLanguage === "html") {
         setHtmlCode(
-          `<!-- AI generated HTML based on: ${aiPrompt} -->\n` + htmlCode
+          `<!-- AI generated HTML based on: ${aiPrompt} ${
+            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
+          } -->\n` + htmlCode
         );
       } else if (activeLanguage === "css") {
-        setCssCode(`/* AI generated CSS based on: ${aiPrompt} */\n` + cssCode);
+        setCssCode(
+          `/* AI generated CSS based on: ${aiPrompt} ${
+            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
+          } */\n` + cssCode
+        );
       } else if (activeLanguage === "js") {
-        setJsCode(`// AI generated JS based on: ${aiPrompt}\n` + jsCode);
+        setJsCode(
+          `// AI generated JS based on: ${aiPrompt} ${
+            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
+          }\n` + jsCode
+        );
       }
 
       setShowPromptModal(false);
       setAiPrompt("");
+      clearUploadedImage();
     }, 1000);
   };
 
@@ -645,6 +707,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
 
+              {/* Image upload section */}
+              <div className="mt-4">
+                <p className="text-gray-300 mb-2">
+                  Add a reference image (optional):
+                </p>
+
+                {!imagePreview ? (
+                  <div
+                    className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
+                    onClick={() =>
+                      document.getElementById("image-upload").click()
+                    }
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleImageDrop}
+                  >
+                    <FaImage className="text-gray-500 text-4xl mx-auto mb-2" />
+                    <p className="text-gray-400 mb-2">
+                      Drag & drop an image here or click to browse
+                    </p>
+                    <p className="text-gray-500 text-sm">Max file size: 5MB</p>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative rounded-lg overflow-hidden">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full max-h-48 object-contain rounded-lg bg-gray-900"
+                    />
+                    <button
+                      className="absolute top-2 right-2 bg-red-600 rounded-full p-1 text-white hover:bg-red-700 transition-colors"
+                      onClick={clearUploadedImage}
+                      title="Remove image"
+                    >
+                      <FaTimes />
+                    </button>
+                    <div className="py-2 px-3 bg-gray-900 text-sm text-gray-300">
+                      {uploadedImage?.name} (
+                      {(uploadedImage?.size / 1024).toFixed(1)}KB)
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Language indicator */}
               <div className="mt-3 inline-flex items-center gap-2 text-sm bg-gray-700 px-3 py-1.5 rounded-full">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
@@ -660,7 +772,10 @@ document.addEventListener('DOMContentLoaded', () => {
             {/* Modal footer */}
             <div className="bg-gray-900 px-6 py-4 flex justify-end gap-3">
               <button
-                onClick={() => setShowPromptModal(false)}
+                onClick={() => {
+                  setShowPromptModal(false);
+                  clearUploadedImage();
+                }}
                 className="px-4 py-2 rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
               >
                 Cancel
