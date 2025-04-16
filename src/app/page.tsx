@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import Editor, { Monaco, OnMount } from "@monaco-editor/react"; // Updated import with types
+import Editor, { Monaco, OnMount } from "@monaco-editor/react";
 import styles from "./page.module.css";
 import {
   FaDesktop,
@@ -9,11 +9,9 @@ import {
   FaCode,
   FaPlay,
   FaMagic,
-  FaUpload,
   FaImage,
   FaTimes,
 } from "react-icons/fa";
-// Add types for Monaco editor
 import type * as MonacoEditor from "monaco-editor";
 
 export default function Home() {
@@ -26,7 +24,6 @@ export default function Home() {
   const resizeDividerRef = useRef<HTMLDivElement | null>(null);
 
   // Editor state
-  const [activeLanguage, setActiveLanguage] = useState("html");
   const [editorTheme] = useState("vs-dark");
   const [isAutoRefresh, setIsAutoRefresh] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
@@ -35,189 +32,130 @@ export default function Home() {
   const [previewDevice, setPreviewDevice] = useState("desktop");
 
   // Console output
-  const [consoleLogs, setConsoleLogs] = useState([]);
+  const [consoleLogs, setConsoleLogs] = useState<Array<{type: string; content: string; timestamp: string}>>([]);
   const [showConsole, setShowConsole] = useState(false);
 
-  // Code content state - keeping HTML, CSS, JS only
-  const [htmlCode, setHtmlCode] = useState(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Preview</title>
-</head>
-<body>
-  <div class="container">
-    <h1>Interactive Code Preview</h1>
-    <p>Edit the HTML, CSS and JavaScript to build your website.</p>
-    <div class="card">
-      <h2>Features</h2>
-      <ul>
-        <li>Split view with resizable panels</li>
-        <li>Multiple device previews</li>
-        <li>Console output</li>
-        <li>Live updates as you type</li>
-      </ul>
-      <button id="colorButton">Change Theme Color</button>
+  // React code state
+  const [reactCode, setReactCode] = useState(`// React is available as a global variable
+// No imports or exports needed
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount(count + 1);
+    console.log('Button clicked! Count:', count + 1);
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-4 text-gray-800 border-b-2 border-blue-500 pb-2">
+        Interactive React Preview
+      </h1>
+      <p className="mb-6">
+        Edit the React code to build your website with Tailwind CSS.
+      </p>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Features</h2>
+        <ul className="list-disc pl-5 space-y-2 mb-4">
+          <li>Split view with resizable panels</li>
+          <li>Multiple device previews</li>
+          <li>Console output</li>
+          <li>Live updates as you type</li>
+        </ul>
+        <p className="mb-4">
+          Button clicked: <span className="font-bold">{count}</span> times
+        </p>
+        <button 
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition"
+          onClick={handleClick}
+        >
+          Click me
+        </button>
+      </div>
     </div>
-  </div>
-</body>
-</html>`);
-
-  const [cssCode, setCssCode] = useState(`body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  margin: 0;
-  padding: 0;
-  background-color: #f7f9fc;
-  color: #333;
-  transition: background-color 0.3s ease;
-}
-
-.container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 20px;
-}
-
-h1 {
-  color: #2c3e50;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
-}
-
-.card {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  margin-top: 15px;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-ul {
-  padding-left: 20px;
-}
-
-li {
-  margin-bottom: 8px;
+  );
 }`);
 
-  const [jsCode, setJsCode] = useState(`// Wait for DOM to fully load
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ Document loaded and ready!');
-  
-  // Color button functionality
-  const colorButton = document.getElementById('colorButton');
-  const themeColors = [
-    '#3498db', '#2ecc71', '#e74c3c', '#9b59b6', 
-    '#f39c12', '#1abc9c', '#d35400', '#34495e'
-  ];
-  let colorIndex = 0;
-  
-  if (colorButton) {
-    colorButton.addEventListener('click', () => {
-      const newColor = themeColors[colorIndex];
-      
-      // Update button color
-      colorButton.style.backgroundColor = newColor;
-      
-      // Update heading border color
-      document.querySelector('h1').style.borderBottomColor = newColor;
-      
-      // Log the change
-      console.log('🎨 Theme color changed to:', newColor);
-      
-      // Move to next color or loop back to start
-      colorIndex = (colorIndex + 1) % themeColors.length;
-    });
-    
-    console.log('👆 Click the button to change the theme color!');
-  }
-});`);
-
-  // Add missing state for prompt modal
+  // Code generation state
   const [showPromptModal, setShowPromptModal] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
+  const [generationMethod, setGenerationMethod] = useState<"prompt" | "image">("prompt");
+  const [generationPrompt, setGenerationPrompt] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // Handle editor mounting
-  const handleEditorDidMount: OnMount = (editor, monaco) => {
-    editorRef.current = editor;
-    monacoRef.current = monaco;
-
-    // Initially update preview
-    updatePreview();
-  };
-
-  // Get current code based on active tab
-  const getCurrentCode = () => {
-    switch (activeLanguage) {
-      case "html":
-        return htmlCode;
-      case "css":
-        return cssCode;
-      case "js":
-        return jsCode;
-      default:
-        return htmlCode;
-    }
-  };
-
-  // Handle code changes
-  const handleCodeChange = (value) => {
-    switch (activeLanguage) {
-      case "html":
-        setHtmlCode(value);
-        break;
-      case "css":
-        setCssCode(value);
-        break;
-      case "js":
-        setJsCode(value);
-        break;
-    }
-
+  // Handle code changes with proper debounce
+  const handleCodeChange = (value: string | undefined) => {
+    if (value === undefined) return;
+    
+    // Update the editor content
+    setReactCode(value);
+    
+    // Don't use timeout refs or complex debounce for now
+    // Just update immediately to solve the delay issue
     if (isAutoRefresh) {
-      // Debounce to prevent too frequent updates
-      clearTimeout(window.updateTimeout);
-      window.updateTimeout = setTimeout(updatePreview, 500);
+      // Call update directly, simplifying the flow
+      setTimeout(() => {
+        if (iframeRef.current) {
+          renderPreview(value);
+        }
+      }, 0);
     }
   };
-
-  // Combine code and update preview
-  const updatePreview = useCallback(() => {
+  
+  // Separate function to render the preview that doesn't rely on reactCode state
+  const renderPreview = (code: string) => {
     if (!iframeRef.current) return;
-
-    setConsoleLogs([]);
-
-    const combinedCode = `
+    
+    setPreviewError(null);
+    
+    // Process code
+    let processedCode = code;
+    
+    // Remove React imports
+    processedCode = processedCode.replace(/import\s+React(\s*,\s*\{[^}]*\})?\s+from\s+['"]react['"];?/g, '');
+    processedCode = processedCode.replace(/import\s+\{\s*([^}]*)\s*\}\s+from\s+['"]react['"];?/g, '');
+    
+    // Remove export statements
+    processedCode = processedCode.replace(/export\s+default\s+function\s+App/, 'function App');
+    processedCode = processedCode.replace(/export\s+default\s+class\s+App/, 'class App');
+    processedCode = processedCode.replace(/export\s+default\s+App/, '');
+    
+    // Create the preview HTML
+    const previewHTML = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Preview</title>
-        <!-- Include Tailwind CSS via CDN -->
+        <title>React Preview</title>
+        <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>${cssCode}</style>
+        <!-- React, ReactDOM, and Babel -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <style>
+          #root {
+            padding: 0;
+            margin: 0;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .preview-error {
+            background-color: #fee2e2;
+            border: 1px solid #f87171;
+            color: #b91c1c;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 0.375rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+          }
+        </style>
         <script>
           // Console log capture
           const originalConsole = console;
@@ -247,26 +185,75 @@ document.addEventListener('DOMContentLoaded', () => {
               }, '*');
             }
           };
+
+          // Error handling
+          window.addEventListener('error', function(e) {
+            window.parent.postMessage({
+              type: 'error',
+              message: e.message,
+              source: e.filename,
+              lineno: e.lineno,
+              colno: e.colno
+            }, '*');
+            return false;
+          });
+          
+          // Make React hooks available globally
+          const { useState, useEffect, useRef, useCallback, useMemo, useContext } = React;
         </script>
       </head>
       <body>
-        ${htmlCode.replace(
-          /<(!DOCTYPE|html|head|body).*?>|<\/(html|head|body)>/gi,
-          ""
-        )}
-        
-        <!-- JavaScript code -->
-        <script type="text/javascript">${jsCode}</script>
+        <div id="root"></div>
+        <script type="text/babel">
+          try {
+            ${processedCode}
+            
+            // Render the App component
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+          } catch (error) {
+            console.error(error);
+            document.getElementById('root').innerHTML = '<div class="preview-error"><strong>Error:</strong> ' + error.message + '</div>';
+          }
+        </script>
       </body>
       </html>
     `;
+    
+    // Update the iframe directly
+    iframeRef.current.srcdoc = previewHTML;
+  };
 
-    iframeRef.current.srcdoc = combinedCode;
-  }, [htmlCode, cssCode, jsCode]);
+  // Manually update preview (for Run button)
+  const updatePreview = useCallback(() => {
+    if (iframeRef.current) {
+      renderPreview(reactCode);
+    }
+  }, [reactCode]);
+
+  // Handle editor mounting
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+
+    // Set up React language support
+    if (monaco) {
+      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        jsx: monaco.languages.typescript.JsxEmit.React,
+        jsxFactory: 'React.createElement',
+        reactNamespace: 'React',
+        allowNonTsExtensions: true,
+        allowJs: true,
+        target: monaco.languages.typescript.ScriptTarget.Latest,
+      });
+    }
+
+    // Initial preview
+    updatePreview();
+  };
 
   // Initialize console message listener
   useEffect(() => {
-    const handleMessage = (event) => {
+    const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "console") {
         const { method, args } = event.data;
         setConsoleLogs((prev) => [
@@ -274,6 +261,16 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             type: method,
             content: args.join(" "),
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ]);
+      } else if (event.data?.type === "error") {
+        setPreviewError(`${event.data.message} (Line: ${event.data.lineno}, Col: ${event.data.colno})`);
+        setConsoleLogs((prev) => [
+          ...prev,
+          {
+            type: "error",
+            content: `${event.data.message} (Line: ${event.data.lineno}, Col: ${event.data.colno})`,
             timestamp: new Date().toLocaleTimeString(),
           },
         ]);
@@ -301,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, [previewDevice]);
 
   // Update preview dimensions based on device selection
-  const updatePreviewSize = (device) => {
+  const updatePreviewSize = (device: string) => {
     if (!iframeRef.current) return;
 
     const iframe = iframeRef.current;
@@ -334,83 +331,74 @@ document.addEventListener('DOMContentLoaded', () => {
     alert("Code formatting would happen here with Prettier integration");
   };
 
-  // Add this function before your return statement
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size exceeds 5MB limit");
-        return;
-      }
+  // Handle file uploads with proper UI guidance
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      setUploadedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size exceeds 5MB limit");
-        return;
-      }
-
-      setUploadedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    // Set the file for upload
+    setUploadedImage(file);
+    
+    // Display the prompt to generate code from the image
+    setGenerationMethod("image");
+    setShowPromptModal(true);
   };
 
   const clearUploadedImage = () => {
     setUploadedImage(null);
-    setImagePreview("");
   };
 
-  // Update the generateCodeWithAI function to include image info if available
-  const generateCodeWithAI = () => {
-    // This would connect to an AI service in a real implementation
-    console.log("Generating code with prompt:", aiPrompt);
-    if (uploadedImage) {
-      console.log("Using reference image:", uploadedImage.name);
-      // In a real implementation, you'd upload the image to a service
-      // or encode it as base64 to send with the API request
+  // Update the generateCodeWithAI function
+  const generateCodeWithAI = async () => {
+    if (!generationPrompt && !uploadedImage) {
+      alert("Please enter a prompt or upload an image first.");
+      return;
     }
 
-    // Simulate AI response for demo purposes
-    setTimeout(() => {
-      if (activeLanguage === "html") {
-        setHtmlCode(
-          `<!-- AI generated HTML based on: ${aiPrompt} ${
-            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
-          } -->\n` + htmlCode
-        );
-      } else if (activeLanguage === "css") {
-        setCssCode(
-          `/* AI generated CSS based on: ${aiPrompt} ${
-            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
-          } */\n` + cssCode
-        );
-      } else if (activeLanguage === "js") {
-        setJsCode(
-          `// AI generated JS based on: ${aiPrompt} ${
-            uploadedImage ? `(with image: ${uploadedImage.name})` : ""
-          }\n` + jsCode
-        );
+    setIsGeneratingCode(true);
+    try {
+      let response;
+      if (generationMethod === "image" && uploadedImage) {
+        const formData = new FormData();
+        formData.append("file", uploadedImage);
+        response = await fetch("/api/imageToCode", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        response = await fetch("/api/promptToCode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: generationPrompt }),
+        });
       }
 
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Update the React code with the generated code
+      setReactCode(data.code);
+      
+      // Force an immediate preview update
+      setTimeout(() => {
+        if (iframeRef.current) {
+          renderPreview(data.code);
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error generating code:", error);
+      alert("Failed to generate code. Please try again.");
+    } finally {
+      setIsGeneratingCode(false);
       setShowPromptModal(false);
-      setAiPrompt("");
+      // Clear the input after generation
+      setGenerationPrompt("");
       clearUploadedImage();
-    }, 1000);
+    }
   };
 
   useEffect(() => {
@@ -418,12 +406,16 @@ document.addEventListener('DOMContentLoaded', () => {
       setIsResizing(true);
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
 
-      const containerWidth = document.querySelector(
+      const container = document.querySelector(
         `.${styles.mainContent}`
-      ).clientWidth;
+      );
+      
+      if (!container) return;
+      
+      const containerWidth = container.clientWidth;
       const newWidth = (e.clientX / containerWidth) * 100;
 
       // Limit minimum and maximum width
@@ -478,31 +470,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </header>
 
+      {/* Simplified toolbar without language tabs */}
       <div className={styles.toolbar}>
         <div className={styles.languageTabs}>
-          <button
-            className={`${styles.tabButton} ${
-              activeLanguage === "html" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveLanguage("html")}
-          >
-            HTML
-          </button>
-          <button
-            className={`${styles.tabButton} ${
-              activeLanguage === "css" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveLanguage("css")}
-          >
-            CSS
-          </button>
-          <button
-            className={`${styles.tabButton} ${
-              activeLanguage === "js" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveLanguage("js")}
-          >
-            JavaScript
+          <button className={`${styles.tabButton} ${styles.activeTab}`}>
+            React
           </button>
         </div>
 
@@ -604,8 +576,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div className={styles.editorContainer} style={{ width: editorWidth }}>
           <Editor
             height="100%"
-            language={activeLanguage === "js" ? "javascript" : activeLanguage}
-            value={getCurrentCode()}
+            language="typescript"
+            value={reactCode}
             theme={editorTheme}
             onChange={handleCodeChange}
             onMount={handleEditorDidMount}
@@ -643,10 +615,16 @@ document.addEventListener('DOMContentLoaded', () => {
           }}
         >
           <div className={styles.previewWrapper}>
+            {previewError && (
+              <div className={styles.previewError}>
+                <strong>Error:</strong> {previewError}
+              </div>
+            )}
+            <div className={styles.reactIndicator}>React + Tailwind Preview</div>
             <iframe
               ref={iframeRef}
               className={styles.preview}
-              title="Code Preview"
+              title="React Preview"
               sandbox="allow-scripts allow-modals"
             ></iframe>
           </div>
@@ -684,108 +662,109 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      {/* AI generation modal */}
       {showPromptModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
-          <div className="bg-gray-800 w-full max-w-lg rounded-lg overflow-hidden shadow-2xl transform transition-all duration-300 scale-100 animate-fadeIn mx-4">
-            {/* Modal header */}
-            <div className="border-b border-gray-700 px-6 py-4">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <FaMagic className="text-blue-400" /> Generate Code with AI
-              </h2>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h2>Generate Code with AI</h2>
+              <button 
+                onClick={() => setShowPromptModal(false)} 
+                className={styles.closeButton}
+                title="Close"
+              >
+                <FaTimes />
+              </button>
             </div>
-
-            {/* Modal body */}
-            <div className="px-6 py-4">
-              <p className="text-gray-300 mb-3">
-                Describe what you want to create:
-              </p>
-              <textarea
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="E.g., Create a responsive navbar with a logo and dropdown menu..."
-                rows={5}
-                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              />
-
-              {/* Image upload section */}
-              <div className="mt-4">
-                <p className="text-gray-300 mb-2">
-                  Add a reference image (optional):
-                </p>
-
-                {!imagePreview ? (
-                  <div
-                    className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
-                    onClick={() =>
-                      document.getElementById("image-upload").click()
-                    }
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleImageDrop}
-                  >
-                    <FaImage className="text-gray-500 text-4xl mx-auto mb-2" />
-                    <p className="text-gray-400 mb-2">
-                      Drag & drop an image here or click to browse
-                    </p>
-                    <p className="text-gray-500 text-sm">Max file size: 5MB</p>
+            
+            <div className={styles.generationTabs}>
+              <button
+                className={`${styles.tabButton} ${generationMethod === "prompt" ? styles.active : ""}`}
+                onClick={() => setGenerationMethod("prompt")}
+              >
+                <FaMagic /> Text Prompt
+              </button>
+              <button
+                className={`${styles.tabButton} ${generationMethod === "image" ? styles.active : ""}`}
+                onClick={() => setGenerationMethod("image")}
+              >
+                <FaImage /> Image
+              </button>
+            </div>
+            
+            <div className={styles.generationInputs}>
+              {generationMethod === "prompt" && (
+                <div className={styles.promptInputContainer}>
+                  <label htmlFor="promptInput" className={styles.inputLabel}>
+                    Enter a description of the UI you want to create:
+                  </label>
+                  <textarea
+                    id="promptInput"
+                    value={generationPrompt}
+                    onChange={(e) => setGenerationPrompt(e.target.value)}
+                    placeholder="Example: Create a responsive navbar with logo, navigation links, and a dark mode toggle"
+                    className={styles.promptTextarea}
+                    rows={5}
+                  />
+                </div>
+              )}
+              
+              {generationMethod === "image" && (
+                <div className={styles.imageUploadContainer}>
+                  <label htmlFor="imageUpload" className={styles.uploadLabel}>
+                    Upload an image of a UI design:
+                  </label>
+                  <div className={styles.uploadBox}>
+                    {!uploadedImage ? (
+                      <>
+                        <FaImage className={styles.uploadIcon} />
+                        <p className={styles.uploadText}>
+                          Drag and drop an image or <span className={styles.browseText}>browse</span>
+                        </p>
+                        <p className={styles.uploadHint}>
+                          Supports PNG, JPG, GIF (max 10MB)
+                        </p>
+                      </>
+                    ) : (
+                      <div className={styles.uploadedFileInfo}>
+                        <FaImage className={styles.fileIcon} />
+                        <span className={styles.fileName}>{uploadedImage.name}</span>
+                        <button 
+                          onClick={clearUploadedImage}
+                          className={styles.removeFileButton}
+                          title="Remove file"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    )}
                     <input
-                      id="image-upload"
+                      id="imageUpload"
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
-                      className="hidden"
+                      className={styles.fileInput}
+                      title="Upload an image to generate code"
                     />
                   </div>
-                ) : (
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full max-h-48 object-contain rounded-lg bg-gray-900"
-                    />
-                    <button
-                      className="absolute top-2 right-2 bg-red-600 rounded-full p-1 text-white hover:bg-red-700 transition-colors"
-                      onClick={clearUploadedImage}
-                      title="Remove image"
-                    >
-                      <FaTimes />
-                    </button>
-                    <div className="py-2 px-3 bg-gray-900 text-sm text-gray-300">
-                      {uploadedImage?.name} (
-                      {(uploadedImage?.size / 1024).toFixed(1)}KB)
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Language indicator */}
-              <div className="mt-3 inline-flex items-center gap-2 text-sm bg-gray-700 px-3 py-1.5 rounded-full">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
-                <span className="text-gray-300">
-                  Generating for:{" "}
-                  <span className="text-blue-400 font-medium">
-                    {activeLanguage.toUpperCase()}
-                  </span>
-                </span>
-              </div>
+                </div>
+              )}
             </div>
-
-            {/* Modal footer */}
-            <div className="bg-gray-900 px-6 py-4 flex justify-end gap-3">
+            
+            <div className={styles.modalFooter}>
               <button
-                onClick={() => {
-                  setShowPromptModal(false);
-                  clearUploadedImage();
-                }}
-                className="px-4 py-2 rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
+                className={styles.generateButton}
                 onClick={generateCodeWithAI}
-                disabled={!aiPrompt.trim()}
-                className="px-4 py-2 rounded-md bg-blue-600 text-white flex items-center gap-2 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 transition-colors"
+                disabled={isGeneratingCode || (generationMethod === "prompt" && !generationPrompt) || (generationMethod === "image" && !uploadedImage)}
               >
-                <FaMagic /> Generate
+                {isGeneratingCode ? (
+                  <>
+                    <span className={styles.loadingSpinner}></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>Generate Code</>
+                )}
               </button>
             </div>
           </div>
