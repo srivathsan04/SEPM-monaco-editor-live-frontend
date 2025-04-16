@@ -385,170 +385,274 @@
   backdrop-filter: blur(3px);
 }
 
-.modalContent {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
+.modal {
+  background-color: #1e1e1e;
+  border-radius: 8px;
   width: 90%;
   max-width: 600px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  position: relative;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
 }
 
-.modalContent h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
-  text-align: center;
-  font-size: 24px;
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: 500;
 }
 
 .closeButton {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   background: none;
   border: none;
-  font-size: 24px;
+  color: #999;
+  font-size: 1.2rem;
   cursor: pointer;
-  color: #666;
-}
-
-/* Prompt Tabs */
-.promptTabs {
+  padding: 4px;
   display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s;
 }
 
-.tabButton {
-  flex: 1;
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.generationTabs {
+  display: flex;
+  padding: 0 20px;
+  border-bottom: 1px solid #333;
+}
+
+.generationTabs .tabButton {
   background: none;
   border: none;
-  padding: 10px 16px;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 12px 16px;
   cursor: pointer;
-  font-weight: 500;
-  color: #6b7280;
-  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.activeTab {
-  color: #6366f1;
-  border-bottom: 2px solid #6366f1;
+.generationTabs .tabButton:hover {
+  color: #fff;
 }
 
-/* Prompt Input Area */
-.promptInputArea {
-  margin-bottom: 24px;
+.generationTabs .tabButton.active {
+  color: #3b82f6;
+  border-bottom: 2px solid #3b82f6;
 }
 
-.textPromptContainer {
-  width: 100%;
+.generationInputs {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Prompt input styles */
+.promptInputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputLabel {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 4px;
 }
 
 .promptTextarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 14px;
   resize: vertical;
-  min-height: 150px;
+  min-height: 120px;
+  max-height: 300px;
+  padding: 12px;
+  background-color: #262626;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
   font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
 }
 
 .promptTextarea:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-/* Image Upload */
+/* Image upload styles */
 .imageUploadContainer {
-  width: 100%;
-}
-
-.imageUploadLabel {
-  cursor: pointer;
-  display: block;
-  width: 100%;
-}
-
-.imageInput {
-  display: none;
-}
-
-.uploadPlaceholder {
-  border: 2px dashed #d1d5db;
-  border-radius: 6px;
-  padding: 40px 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #6b7280;
-  transition: all 0.2s ease;
+  gap: 8px;
 }
 
-.uploadPlaceholder:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+.uploadBox {
+  border: 2px dashed #444;
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  background-color: #262626;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.uploadBox:hover {
+  border-color: #3b82f6;
+  background-color: #2c2c2c;
 }
 
 .uploadIcon {
-  font-size: 32px;
+  font-size: 2.5rem;
+  color: #666;
   margin-bottom: 12px;
 }
 
-.imagePreviewWrapper {
-  width: 100%;
-  height: 250px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #d1d5db;
+.uploadText {
+  margin: 8px 0;
+  color: #ccc;
 }
 
-.imagePreview {
+.browseText {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.uploadHint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 8px;
+}
+
+.uploadedFileInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #333;
+  border-radius: 4px;
+}
+
+.fileIcon {
+  color: #3b82f6;
+  font-size: 1.2rem;
+}
+
+.fileName {
+  color: #fff;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.removeFileButton {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.removeFileButton:hover {
+  color: #f87171;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.fileInput {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  opacity: 0;
+  cursor: pointer;
 }
 
-/* Button Actions */
-.promptActions {
+/* Modal footer */
+.modalFooter {
+  padding: 16px 20px;
+  border-top: 1px solid #333;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-}
-
-.cancelButton {
-  padding: 8px 16px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
 }
 
 .generateButton {
-  padding: 8px 16px;
-  background: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 0.95rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .generateButton:hover:not(:disabled) {
-  background: #4f46e5;
+  background-color: #2563eb;
 }
 
 .generateButton:disabled {
-  background: #a5a6f6;
+  background-color: #3b82f680;
   cursor: not-allowed;
+}
+
+/* Loading spinner */
+.loadingSpinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Dark theme adjustments */
@@ -580,78 +684,6 @@
 
 /* Add these styles at the appropriate location in your CSS file */
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 24px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-  color: #e0e0e0;
-}
-
-.modal h2 {
-  margin-top: 0;
-  border-bottom: 1px solid #444;
-  padding-bottom: 10px;
-}
-
-.promptTextarea {
-  width: 100%;
-  background-color: #2d2d2d;
-  color: #e0e0e0;
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 10px;
-  font-family: inherit;
-  margin: 10px 0;
-  resize: vertical;
-}
-
-.modalButtons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.modalButtons button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-}
-
-.generateButton {
-  background-color: #0078d4;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.generateButton:hover:not(:disabled) {
-  background-color: #0086f0;
-}
-
-.generateButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .reactIndicator {
   position: absolute;
   top: 0;
@@ -670,5 +702,19 @@
 .previewWrapper {
   position: relative;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
+}
+
+.previewError {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #ff5757;
+  color: white;
+  padding: 10px;
+  z-index: 10;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
 }

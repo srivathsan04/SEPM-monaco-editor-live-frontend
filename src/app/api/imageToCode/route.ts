@@ -1,77 +1,78 @@
-import { NextResponse } from "next/server";
+import { Groq } from "groq-sdk";
+import { NextRequest, NextResponse } from "next/server";
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Initialize the Groq client
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // 1. Parse incoming FormData
-    const formData = await request.formData();
+    const formData = await req.formData();
     const file = formData.get("file") as File;
+
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file uploaded" },
+        { status: 400 }
+      );
     }
 
-    // 2. Convert the image file to Base64
+    // Convert file to base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64Image = buffer.toString("base64");
-    const mimeType = file.type || "image/jpeg";
-    const base64Url = `data:${mimeType};base64,${base64Image}`;
+    const imageUrl = `data:image/${file.type};base64,${base64Image}`;
 
-    // 3. Make request to the Groq Vision Model
-    //    Prompt: instruct the model to generate code from the uploaded image
-    const response = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.2-90b-vision-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `
-                You are a code generator. You will receive an image and produce a single code snippet. 
-                The response must be plain HTML, optionally with a <style> block for CSS and a <script> block for JS. 
-                - No markdown. 
-                - No JSON. 
-                - No extra text or commentary. 
-                - Output only the raw code, nothing else.
-
-                Please create a minimal webpage layout based on the image content. 
-                `,
-              },
-              {
-                type: "image_url",
-                image_url: { url: base64Url },
-              },
-            ],
-          },
-        ],
-        temperature: 0.2,
-        max_tokens: 1000,
-      }),
+    // Using the Groq vision model
+    const completion = await groq.chat.completions.create({
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert React developer. Analyze the uploaded image and generate clean, functional React code that closely matches the design shown in the image. Use Tailwind CSS for styling."
+        },
+        {
+          role: "user",
+          content: "Generate React code based on this image. Use React hooks and Tailwind CSS for styling. Make the code clean, functional, and responsive."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl
+              }
+            }
+          ]
+        }
+      ],
+      temperature: 0.5,
+      max_tokens: 4000
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || "Groq request failed");
-    }
+    // Extract the generated code from the response
+    const generatedText = completion.choices[0].message.content || "";
+    
+    // Try to extract code blocks from the response
+    const codeMatch = generatedText.match(/```(?:jsx?|tsx?|react)?\s*([\s\S]*?)```/);
+    const extractedCode = codeMatch ? codeMatch[1] : generatedText;
 
-    // 4. Parse the model's response for the generated code
-    const groqData = await response.json();
-    const modelContent = groqData?.choices?.[0]?.message?.content ?? "";
+    // Remove any React imports if present
+    let cleanedCode = extractedCode.replace(/import\s+React(\s*,\s*\{[^}]*\})?\s+from\s+['"]react['"];?/g, '');
+    cleanedCode = cleanedCode.replace(/import\s+\{\s*([^}]*)\s*\}\s+from\s+['"]react['"];?/g, '');
+    
+    // Remove export statements if present
+    cleanedCode = cleanedCode.replace(/export\s+default\s+function\s+App/, 'function App');
+    cleanedCode = cleanedCode.replace(/export\s+default\s+class\s+App/, 'class App');
+    cleanedCode = cleanedCode.replace(/export\s+default\s+App/, '');
 
-    // Return the model's output (you can further parse if needed)
-    return NextResponse.json({ success: true, code: modelContent });
+    return NextResponse.json({ code: cleanedCode });
   } catch (error) {
+    console.error("Error generating code:", error);
     return NextResponse.json(
-      { error: `Failed to process image: ${error.message}` },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
